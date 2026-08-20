@@ -1,0 +1,13 @@
+{
+  "background_color": "rgb(5, 5, 9)",
+  "dir": "ltr",
+  "display": "standalone",
+  "name": "As Cinzas de Eldrath",
+  "orientation": "any",
+  "scope": "/",
+  "short_name": "matyzunac.github",
+  "start_url": "/",
+  "theme_color": "hsl(342, 74%, 31%)",
+  "id": "https://matyzunac.github.io/ELDRATH-/",
+  "description": "As Cinzas de Eldrath é um RPG sombrio onde você escolhe sua classe, enfrenta monstros e chefes, explora regiões amaldiçoadas e evolui seu personagem."
+}
