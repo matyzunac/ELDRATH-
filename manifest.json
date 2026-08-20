@@ -11,15 +11,14 @@
   "id": "https://matyzunac.github.io/ELDRATH-/",
   "description": "As Cinzas de Eldrath é um RPG sombrio onde você escolhe sua classe, enfrenta monstros e chefes, explora regiões amaldiçoadas e evolui seu personagem.",
   "icons": [
-    {
-      "src": "ícone-192.png",
-      "sizes": "192x192",
-      "type": "image/png"
-    },
-    {
-      "src": "ícone-512.png",
-      "sizes": "512x512",
-      "type": "image/png"
-    }
+  {
+    "src": "./icone-192.png",
+    "sizes": "192x192",
+    "type": "image/png"
+  },
+  {
+    "src": "./icone-512.png",
+    "sizes": "512x512",
+    "type": "image/png"
+  }
   ]
-}
