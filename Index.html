@@ -1,0 +1,1590 @@
+Sim — abaixo está uma versão completa do index.html com loja, habilidades exclusivas das 4 classes, compra de equipamentos/poções, além dos sistemas anteriores.
+
+As Cinzas de Eldrath — RPG Sombrio
+
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width,initial-scale=1.0">
+<title>As Cinzas de Eldrath</title>
+
+<style>
+*{box-sizing:border-box}
+
+body{
+    margin:0;
+    background:#050509;
+    color:#ddd;
+    font-family:Georgia,serif;
+}
+
+#game{
+    width:min(1200px,100%);
+    margin:auto;
+    padding:20px;
+    min-height:100vh;
+    background:
+        radial-gradient(circle at top,#35151f 0,#100b10 35%,#050509 80%);
+}
+
+h1{
+    text-align:center;
+    color:#c52842;
+    text-shadow:0 0 20px #8b1026;
+}
+
+h2,h3{color:#bca3a8}
+
+.panel{
+    background:rgba(15,13,18,.95);
+    border:1px solid #44232c;
+    border-radius:10px;
+    padding:15px;
+    margin-bottom:15px;
+    box-shadow:0 0 20px #000;
+}
+
+.grid{
+    display:grid;
+    grid-template-columns:260px 1fr 280px;
+    gap:15px;
+}
+
+@media(max-width:850px){
+    .grid{grid-template-columns:1fr}
+}
+
+button{
+    background:#211219;
+    color:#ddd;
+    border:1px solid #71303d;
+    border-radius:6px;
+    padding:9px 12px;
+    margin:4px;
+    cursor:pointer;
+    transition:.15s;
+}
+
+button:hover{
+    background:#551d2b;
+    box-shadow:0 0 10px #6f1d2d;
+}
+
+button:disabled{
+    opacity:.35;
+    cursor:not-allowed;
+}
+
+.stats{
+    display:grid;
+    grid-template-columns:1fr 1fr;
+    gap:6px;
+}
+
+.stat{
+    background:#19161d;
+    padding:8px;
+    border-radius:5px;
+}
+
+.bar{
+    height:12px;
+    background:#282027;
+    border-radius:10px;
+    overflow:hidden;
+    margin-top:5px;
+}
+
+.hp{height:100%;background:#a71932}
+.mp{height:100%;background:#3d56bb}
+.enemybar{height:100%;background:#7b1827}
+
+#log{
+    height:300px;
+    overflow-y:auto;
+    background:#08070a;
+    padding:10px;
+    border-radius:6px;
+}
+
+.log{margin:0 0 8px}
+.good{color:#69d18b}
+.bad{color:#e65062}
+.gold{color:#d5aa45}
+.magic{color:#8ca6ff}
+.rare{color:#63a5ff}
+.legendary{color:#f5a623}
+
+.item{
+    border-bottom:1px solid #29252b;
+    padding:9px 3px;
+}
+
+.shopItem{
+    background:#151218;
+    padding:10px;
+    margin:6px 0;
+    border-radius:6px;
+    border:1px solid #30242a;
+}
+
+.locked{
+    color:#777;
+}
+
+#bossBox{
+    display:none;
+    border-color:#8b172c;
+    background:#180a0f;
+}
+
+.skill{
+    width:100%;
+    text-align:left;
+}
+
+.skill strong{
+    color:#c7a0aa;
+}
+
+.price{
+    color:#d8af49;
+}
+</style>
+</head>
+
+<body>
+
+<div id="game">
+
+<h1>☠ AS CINZAS DE ELDRATH ☠</h1>
+
+<div class="panel">
+<h3>Escolha sua classe</h3>
+
+<button onclick="newGame('Cavaleiro')">⚔️ Cavaleiro</button>
+<button onclick="newGame('Arcanista')">🔮 Arcanista</button>
+<button onclick="newGame('Caçador')">🏹 Caçador</button>
+<button onclick="newGame('Necromante')">💀 Necromante</button>
+</div>
+
+<div class="grid">
+
+<!-- JOGADOR -->
+<div>
+
+<div class="panel">
+<h2 id="playerName">Aventureiro</h2>
+<div id="stats"></div>
+</div>
+
+<div class="panel">
+<h3>🎒 Inventário</h3>
+<div id="inventory"></div>
+</div>
+
+<div class="panel">
+<h3>⚔️ Equipamento</h3>
+<div id="equipment"></div>
+</div>
+
+</div>
+
+<!-- CENTRO -->
+<div>
+
+<div class="panel">
+
+<h2 id="location">Ruínas de Eldrath</h2>
+
+<p id="description">
+A névoa cobre as pedras antigas. Algo respira nas profundezas.
+</p>
+
+<div id="actions"></div>
+
+</div>
+
+<div class="panel" id="bossBox">
+
+<h2 id="bossName"></h2>
+
+<div id="bossStats"></div>
+
+<div id="bossActions"></div>
+
+</div>
+
+<div class="panel">
+
+<h3>📜 Crônicas</h3>
+
+<div id="log"></div>
+
+</div>
+
+</div>
+
+<!-- DIREITA -->
+<div>
+
+<div class="panel">
+
+<h3>🗺️ Regiões</h3>
+
+<div id="map"></div>
+
+</div>
+
+<div class="panel">
+
+<h3>🛒 Loja Sombria</h3>
+
+<div id="shop"></div>
+
+</div>
+
+<div class="panel">
+
+<h3>✨ Habilidades</h3>
+
+<div id="skills"></div>
+
+</div>
+
+</div>
+
+</div>
+
+</div>
+
+<script>
+
+const classes={
+
+Cavaleiro:{
+hp:150,
+mp:50,
+atk:18,
+def:15,
+magic:4,
+crit:8
+},
+
+Arcanista:{
+hp:90,
+mp:140,
+atk:7,
+def:7,
+magic:25,
+crit:10
+},
+
+Caçador:{
+hp:115,
+mp:70,
+atk:22,
+def:9,
+magic:6,
+crit:24
+},
+
+Necromante:{
+hp:105,
+mp:120,
+atk:12,
+def:8,
+magic:22,
+crit:15
+}
+
+};
+
+const regions=[
+
+{
+name:"Ruínas de Eldrath",
+min:1,
+boss:"Guardião Sem Rosto"
+},
+
+{
+name:"Floresta dos Enforcados",
+min:3,
+boss:"Bruxa do Carvalho Negro"
+},
+
+{
+name:"Pântano de Nhal",
+min:5,
+boss:"Serpente Abissal"
+},
+
+{
+name:"Catedral do Sangue",
+min:8,
+boss:"Bispo Maldito"
+},
+
+{
+name:"Trono do Vazio",
+min:12,
+boss:"Rei Sem Nome"
+}
+
+];
+
+const shopItems=[
+
+{
+name:"Espada de Ferro",
+type:"weapon",
+atk:10,
+price:40
+},
+
+{
+name:"Machado do Carrasco",
+type:"weapon",
+atk:18,
+price:100
+},
+
+{
+name:"Arco Sombrio",
+type:"weapon",
+atk:15,
+crit:8,
+price:120
+},
+
+{
+name:"Cajado Profano",
+type:"weapon",
+magic:20,
+price:150
+},
+
+{
+name:"Armadura de Ferro",
+type:"armor",
+def:10,
+price:60
+},
+
+{
+name:"Armadura do Cavaleiro Caído",
+type:"armor",
+def:18,
+price:140
+},
+
+{
+name:"Manto Arcano",
+type:"armor",
+def:6,
+magic:15,
+price:130
+},
+
+{
+name:"Poção de Vida",
+type:"potion",
+price:25
+},
+
+{
+name:"Poção de Mana",
+type:"manaPotion",
+price:25
+}
+
+];
+
+let p=null;
+let boss=null;
+let regionIndex=0;
+let combat=false;
+
+function newGame(cls){
+
+p={
+name:cls,
+class:cls,
+level:1,
+
+xp:0,
+next:80,
+
+hp:classes[cls].hp,
+maxhp:classes[cls].hp,
+
+mp:classes[cls].mp,
+maxmp:classes[cls].mp,
+
+atk:classes[cls].atk,
+def:classes[cls].def,
+magic:classes[cls].magic,
+crit:classes[cls].crit,
+
+gold:100,
+
+potions:3,
+manaPotions:2,
+
+weapon:null,
+armor:null,
+
+inventory:[]
+};
+
+regionIndex=0;
+combat=false;
+
+document.getElementById("log").innerHTML="";
+
+log("Você entra nas terras amaldiçoadas de Eldrath.","bad");
+
+log(
+"Classe escolhida: "+cls+".",
+"good"
+);
+
+render();
+
+}
+
+function log(text,type=""){
+
+const l=document.getElementById("log");
+
+l.innerHTML+=
+`<p class="log ${type}">${text}</p>`;
+
+l.scrollTop=l.scrollHeight;
+
+}
+
+function rand(a,b){
+
+return Math.floor(Math.random()*(b-a+1))+a;
+
+}
+
+function gainXP(amount){
+
+p.xp+=amount;
+
+if(p.xp>=p.next){
+
+p.xp-=p.next;
+
+p.next=Math.floor(p.next*1.35);
+
+p.level++;
+
+p.maxhp+=25;
+p.maxmp+=15;
+
+p.atk+=4;
+p.def+=3;
+p.magic+=3;
+
+p.hp=p.maxhp;
+p.mp=p.maxmp;
+
+log(
+"☠ Você alcançou o nível "+p.level+"!",
+"good"
+);
+
+}
+
+}
+
+function spawnEnemy(){
+
+const enemies=[
+"Carniçal",
+"Cavaleiro Oco",
+"Demônio da Névoa",
+"Abominação",
+"Corvo de Sangue"
+];
+
+const scale=regionIndex+1;
+
+boss={
+
+name:enemies[rand(0,enemies.length-1)],
+
+maxhp:50+
+scale*35+
+p.level*12,
+
+hp:50+
+scale*35+
+p.level*12,
+
+atk:10+
+scale*5+
+p.level*2,
+
+def:3+
+scale*2
+
+};
+
+combat=true;
+
+log(
+"⚠️ "+boss.name+" surgiu das sombras!",
+"bad"
+);
+
+render();
+
+}
+
+function normalAttack(){
+
+if(!combat)return;
+
+let damage=Math.max(
+1,
+p.atk+rand(-3,6)-boss.def
+);
+
+let critical=Math.random()*100<p.crit;
+
+if(critical){
+
+damage*=2;
+
+log(
+"💥 GOLPE CRÍTICO!",
+"gold"
+);
+
+}
+
+boss.hp-=damage;
+
+log(
+"Você causou "+damage+" de dano.",
+"good"
+);
+
+enemyTurn();
+
+}
+
+function enemyTurn(){
+
+if(boss.hp<=0){
+
+winBattle();
+
+return;
+
+}
+
+let damage=Math.max(
+1,
+boss.atk-rand(0,5)-p.def
+);
+
+p.hp-=damage;
+
+log(
+"☠ "+boss.name+" causou "+damage+" de dano.",
+"bad"
+);
+
+if(p.hp<=0){
+
+p.hp=1;
+
+p.gold=Math.floor(p.gold/2);
+
+combat=false;
+
+log(
+"Você caiu... mas a morte ainda não o quer.",
+"bad"
+);
+
+}
+
+render();
+
+}
+
+function usePotion(){
+
+if(p.potions<=0){
+
+log(
+"Você não possui poções.",
+"bad"
+);
+
+return;
+
+}
+
+p.potions--;
+
+p.hp=Math.min(
+p.maxhp,
+p.hp+55
+);
+
+log(
+"🧪 Você recuperou vida.",
+"good"
+);
+
+render();
+
+}
+
+function useManaPotion(){
+
+if(p.manaPotions<=0){
+
+log(
+"Você não possui poções de mana.",
+"bad"
+);
+
+return;
+
+}
+
+p.manaPotions--;
+
+p.mp=Math.min(
+p.maxmp,
+p.mp+50
+);
+
+log(
+"🔵 Sua mana foi restaurada.",
+"magic"
+);
+
+render();
+
+}
+
+/* =========================
+   HABILIDADES DAS CLASSES
+========================= */
+
+function useSkill(skill){
+
+if(!combat)return;
+
+let cost=skill.cost;
+
+if(p.mp<cost){
+
+log(
+"Mana insuficiente.",
+"bad"
+);
+
+return;
+
+}
+
+p.mp-=cost;
+
+skill.effect();
+
+if(boss.hp<=0){
+
+winBattle();
+
+return;
+
+}
+
+enemyTurn();
+
+}
+
+function classSkills(){
+
+if(p.class==="Cavaleiro"){
+
+return [
+
+{
+name:"🛡️ Golpe do Carrasco",
+desc:"Causa grande dano físico.",
+cost:15,
+effect:()=>{
+
+let damage=p.atk*2+rand(5,15)-boss.def;
+
+boss.hp-=Math.max(1,damage);
+
+log(
+"⚔️ Golpe do Carrasco causou "+damage+" de dano.",
+"good"
+);
+
+}
+},
+
+{
+name:"🛡️ Muralha de Ferro",
+desc:"Aumenta sua defesa durante a batalha.",
+cost:20,
+effect:()=>{
+
+p.def+=8;
+
+log(
+"🛡️ Sua defesa aumentou em 8.",
+"good"
+);
+
+}
+}
+
+];
+
+}
+
+if(p.class==="Arcanista"){
+
+return [
+
+{
+name:"🔥 Chama do Abismo",
+desc:"Ataque mágico devastador.",
+cost:30,
+effect:()=>{
+
+let damage=p.magic*3+rand(5,20);
+
+boss.hp-=damage;
+
+log(
+"🔥 A Chama do Abismo causou "+damage+" de dano.",
+"magic"
+);
+
+}
+},
+
+{
+name:"🌀 Prisão Temporal",
+desc:"Causa dano e reduz o ataque do inimigo.",
+cost:25,
+effect:()=>{
+
+let damage=p.magic+rand(10,20);
+
+boss.hp-=damage;
+
+boss.atk=Math.max(1,boss.atk-7);
+
+log(
+"🌀 O inimigo foi aprisionado no tempo.",
+"magic"
+);
+
+}
+}
+
+];
+
+}
+
+if(p.class==="Caçador"){
+
+return [
+
+{
+name:"🏹 Flecha Perfurante",
+desc:"Ataque com alta chance crítica.",
+cost:12,
+effect:()=>{
+
+let damage=p.atk*2+rand(10,20);
+
+if(Math.random()<.5)damage*=2;
+
+boss.hp-=damage;
+
+log(
+"🏹 Flecha Perfurante causou "+damage+" de dano.",
+"good"
+);
+
+}
+},
+
+{
+name:"🌑 Camuflagem Sombria",
+desc:"Aumenta muito o crítico.",
+cost:20,
+effect:()=>{
+
+p.crit+=20;
+
+log(
+"🌑 Sua chance crítica aumentou em 20%.",
+"good"
+);
+
+}
+}
+
+];
+
+}
+
+if(p.class==="Necromante"){
+
+return [
+
+{
+name:"💀 Dreno Vital",
+desc:"Causa dano e cura você.",
+cost:25,
+effect:()=>{
+
+let damage=p.magic*2+rand(5,15);
+
+boss.hp-=damage;
+
+p.hp=Math.min(
+p.maxhp,
+p.hp+Math.floor(damage*.6)
+);
+
+log(
+"💀 Você drenou "+damage+" de vida.",
+"magic"
+);
+
+}
+},
+
+{
+name:"☠️ Exército dos Mortos",
+desc:"Invoca mortos para atacar o inimigo.",
+cost:40,
+effect:()=>{
+
+let damage=p.magic*4+rand(10,30);
+
+boss.hp-=damage;
+
+log(
+"☠️ O Exército dos Mortos causou "+damage+" de dano!",
+"magic"
+);
+
+}
+}
+
+];
+
+}
+
+return[];
+
+}
+
+/* =========================
+   BOSS
+========================= */
+
+function bossFight(){
+
+if(p.level<regions[regionIndex].min){
+
+log(
+"Você precisa do nível "+
+regions[regionIndex].min+
+" para enfrentar este Boss.",
+"bad"
+);
+
+return;
+
+}
+
+const scale=regionIndex;
+
+boss={
+
+name:regions[regionIndex].boss,
+
+maxhp:
+200+
+scale*140+
+p.level*30,
+
+hp:
+200+
+scale*140+
+p.level*30,
+
+atk:
+20+
+scale*9+
+p.level*3,
+
+def:
+8+
+scale*5
+
+};
+
+combat=true;
+
+log(
+"☠☠☠ BOSS: "+boss.name+" apareceu!",
+"bad"
+);
+
+render();
+
+}
+
+/* =========================
+   VITÓRIA E DROPS
+========================= */
+
+function winBattle(){
+
+combat=false;
+
+let gold=rand(
+15,
+40
+)*(regionIndex+1);
+
+let experience=
+30+
+regionIndex*25;
+
+p.gold+=gold;
+
+gainXP(experience);
+
+log(
+"☠ "+boss.name+" foi derrotado!",
+"good"
+);
+
+log(
+"💰 Você recebeu "+gold+" moedas.",
+"gold"
+);
+
+log(
+"⭐ Você recebeu "+experience+" XP.",
+"good"
+);
+
+if(Math.random()<.65){
+
+drop();
+
+}
+
+if(Math.random()<.3){
+
+randomEvent();
+
+}
+
+render();
+
+}
+
+function drop(){
+
+const drops=[
+
+{
+name:"Espada do Juramento Quebrado",
+type:"weapon",
+atk:15,
+price:0,
+rarity:"rare"
+},
+
+{
+name:"Machado Demoníaco",
+type:"weapon",
+atk:25,
+price:0,
+rarity:"legendary"
+},
+
+{
+name:"Arco da Lua Morta",
+type:"weapon",
+atk:21,
+crit:12,
+price:0,
+rarity:"rare"
+},
+
+{
+name:"Cajado do Abismo",
+type:"weapon",
+magic:30,
+price:0,
+rarity:"legendary"
+},
+
+{
+name:"Manto das Sombras",
+type:"armor",
+def:10,
+magic:15,
+price:0,
+rarity:"rare"
+},
+
+{
+name:"Couraça do Rei Morto",
+type:"armor",
+def:28,
+price:0,
+rarity:"legendary"
+}
+
+];
+
+const item=
+drops[rand(0,drops.length-1)];
+
+p.inventory.push(item);
+
+log(
+"🎁 DROP RARO: "+item.name+"!",
+"gold"
+);
+
+}
+
+/* =========================
+   EVENTOS
+========================= */
+
+function randomEvent(){
+
+const events=[
+
+()=>{
+
+p.gold+=rand(20,60);
+
+log(
+"💰 Evento: você encontrou um antigo tesouro.",
+"gold"
+);
+
+},
+
+()=>{
+
+p.hp=Math.max(
+1,
+p.hp-20
+);
+
+p.atk+=4;
+
+log(
+"🩸 Evento: um altar amaldiçoado sacrificou sua vida, mas concedeu poder.",
+"bad"
+);
+
+},
+
+()=>{
+
+p.magic+=5;
+
+log(
+"👻 Evento: um espírito antigo ensinou uma técnica proibida.",
+"magic"
+);
+
+},
+
+()=>{
+
+p.potions++;
+
+log(
+"🧪 Evento: uma curandeira fantasma deixou uma poção.",
+"good"
+);
+
+}
+
+];
+
+events[rand(0,events.length-1)]();
+
+}
+
+/* =========================
+   EXPLORAÇÃO
+========================= */
+
+function explore(){
+
+if(combat)return;
+
+let chance=Math.random();
+
+if(chance<.55){
+
+spawnEnemy();
+
+return;
+
+}
+
+if(chance<.8){
+
+randomEvent();
+
+return;
+
+}
+
+let gold=rand(10,35);
+
+p.gold+=gold;
+
+gainXP(10);
+
+log(
+"Você encontrou "+gold+" moedas entre os ossos.",
+"gold"
+);
+
+render();
+
+}
+
+function travel(index){
+
+if(combat)return;
+
+if(p.level<regions[index].min){
+
+log(
+"Região bloqueada. Nível "+
+regions[index].min+
+" necessário.",
+"bad"
+);
+
+return;
+
+}
+
+regionIndex=index;
+
+log(
+"Você entrou em "+regions[index].name+".",
+"gold"
+);
+
+render();
+
+}
+
+/* =========================
+   LOJA
+========================= */
+
+function buy(index){
+
+const item=shopItems[index];
+
+if(p.gold<item.price){
+
+log(
+"💰 Você não tem moedas suficientes.",
+"bad"
+);
+
+return;
+
+}
+
+p.gold-=item.price;
+
+if(item.type==="potion"){
+
+p.potions++;
+
+log(
+"🧪 Poção comprada.",
+"good"
+);
+
+}
+
+else if(item.type==="manaPotion"){
+
+p.manaPotions++;
+
+log(
+"🔵 Poção de mana comprada.",
+"magic"
+);
+
+}
+
+else{
+
+p.inventory.push({
+...item,
+rarity:item.price>=120?"rare":""
+});
+
+log(
+"🛒 Você comprou "+item.name+".",
+"good"
+);
+
+}
+
+render();
+
+}
+
+/* =========================
+   EQUIPAR
+========================= */
+
+function equip(index){
+
+const item=p.inventory[index];
+
+if(item.type==="weapon"){
+
+if(p.weapon){
+
+p.atk-=p.weapon.atk||0;
+p.magic-=p.weapon.magic||0;
+p.crit-=p.weapon.crit||0;
+
+}
+
+p.weapon=item;
+
+p.atk+=item.atk||0;
+p.magic+=item.magic||0;
+p.crit+=item.crit||0;
+
+}
+
+else if(item.type==="armor"){
+
+if(p.armor){
+
+p.def-=p.armor.def||0;
+p.magic-=p.armor.magic||0;
+
+}
+
+p.armor=item;
+
+p.def+=item.def||0;
+p.magic+=item.magic||0;
+
+}
+
+log(
+"⚔️ Equipado: "+item.name,
+"good"
+);
+
+render();
+
+}
+
+/* =========================
+   RENDER
+========================= */
+
+function render(){
+
+if(!p)return;
+
+document.getElementById("playerName").textContent=
+p.name+" — Nível "+p.level;
+
+document.getElementById("stats").innerHTML=`
+
+<div class="stat">
+❤️ Vida ${p.hp}/${p.maxhp}
+<div class="bar">
+<div class="hp"
+style="width:${p.hp/p.maxhp*100}%"></div>
+</div>
+</div>
+
+<div class="stat">
+🔵 Mana ${p.mp}/${p.maxmp}
+<div class="bar">
+<div class="mp"
+style="width:${p.mp/p.maxmp*100}%"></div>
+</div>
+</div>
+
+<div class="stat">⚔️ Ataque: ${p.atk}</div>
+
+<div class="stat">🛡️ Defesa: ${p.def}</div>
+
+<div class="stat">🔮 Magia: ${p.magic}</div>
+
+<div class="stat">🎯 Crítico: ${p.crit}%</div>
+
+<div class="stat">⭐ XP: ${p.xp}/${p.next}</div>
+
+<div class="stat">💰 Ouro: ${p.gold}</div>
+
+`;
+
+document.getElementById("location").textContent=
+regions[regionIndex].name;
+
+document.getElementById("description").textContent=
+"A névoa se move lentamente. Os mortos observam cada passo seu.";
+
+if(combat){
+
+document.getElementById("actions").innerHTML=`
+
+<button onclick="normalAttack()">
+⚔️ Ataque
+</button>
+
+<button onclick="usePotion()">
+🧪 Poção
+</button>
+
+<button onclick="useManaPotion()">
+🔵 Mana
+</button>
+
+`;
+
+}
+else{
+
+document.getElementById("actions").innerHTML=`
+
+<button onclick="explore()">
+🌑 Explorar
+</button>
+
+<button onclick="bossFight()">
+☠️ Enfrentar Boss
+</button>
+
+<button onclick="usePotion()">
+🧪 Poção (${p.potions})
+</button>
+
+<button onclick="useManaPotion()">
+🔵 Mana (${p.manaPotions})
+</button>
+
+`;
+
+}
+
+/* BOSS */
+
+const bossBox=document.getElementById("bossBox");
+
+bossBox.style.display=
+combat?"block":"none";
+
+if(combat){
+
+document.getElementById("bossName").textContent=
+"☠ "+boss.name;
+
+document.getElementById("bossStats").innerHTML=`
+
+❤️ ${boss.hp}/${boss.maxhp}
+
+<div class="bar">
+<div class="enemybar"
+style="width:${boss.hp/boss.maxhp*100}%"></div>
+</div>
+
+<br>
+⚔️ Ataque: ${boss.atk}
+<br>
+🛡️ Defesa: ${boss.def}
+
+`;
+
+}
+
+/* INVENTÁRIO */
+
+document.getElementById("inventory").innerHTML=
+p.inventory.length?
+
+p.inventory.map((item,index)=>`
+
+<div class="item">
+
+<span class="${item.rarity||""}">
+${item.name}
+</span>
+
+<br>
+
+<small>
+
+${item.atk?"⚔️ +"+item.atk:""}
+${item.def?" 🛡️ +"+item.def:""}
+${item.magic?" 🔮 +"+item.magic:""}
+${item.crit?" 🎯 +"+item.crit+"%":""}
+
+</small>
+
+<button onclick="equip(${index})">
+Equipar
+</button>
+
+</div>
+
+`).join("")
+
+:
+
+"<small>Nenhum equipamento.</small>";
+
+/* EQUIPAMENTO */
+
+document.getElementById("equipment").innerHTML=`
+
+<div class="item">
+⚔️ ${p.weapon?p.weapon.name:"Nenhuma arma"}
+</div>
+
+<div class="item">
+🛡️ ${p.armor?p.armor.name:"Nenhuma armadura"}
+</div>
+
+`;
+
+/* MAPA */
+
+document.getElementById("map").innerHTML=
+regions.map((r,i)=>`
+
+<button class="skill"
+onclick="travel(${i})">
+
+${i===regionIndex?"▶ ":""}
+
+${r.name}
+
+<br>
+
+<small>
+Nível ${r.min} —
+Boss: ${r.boss}
+</small>
+
+</button>
+
+`).join("");
+
+/* LOJA */
+
+document.getElementById("shop").innerHTML=
+shopItems.map((item,i)=>`
+
+<div class="shopItem">
+
+<b>${item.name}</b>
+
+<br>
+
+<small>
+
+${item.atk?"⚔️ Ataque +"+item.atk:""}
+
+${item.def?" 🛡️ Defesa +"+item.def:""}
+
+${item.magic?" 🔮 Magia +"+item.magic:""}
+
+${item.crit?" 🎯 Crítico +"+item.crit+"%":""}
+
+</small>
+
+<br>
+
+<span class="price">
+💰 ${item.price}
+</span>
+
+<button onclick="buy(${i})">
+Comprar
+</button>
+
+</div>
+
+`).join("");
+
+/* HABILIDADES */
+
+document.getElementById("skills").innerHTML=
+classSkills().map((skill,i)=>`
+
+<button
+class="skill"
+onclick="useSkill(classSkills()[${i}])"
+${combat?"":"disabled"}>
+
+<strong>${skill.name}</strong>
+
+<br>
+
+<small>
+${skill.desc}
+</small>
+
+<br>
+
+🔵 ${skill.cost} Mana
+
+</button>
+
+`).join("");
+
+}
+
+</script>
+
+</body>
+</html>
