@@ -1,22 +1,12 @@
 {
-  "name": "As Cinzas de Eldrath",
-  "short_name": "Eldrath",
-  "description": "As Cinzas de Eldrath é um RPG sombrio onde você escolhe sua classe, enfrenta monstros e chefes, explora regiões amaldiçoadas e evolui seu personagem.",
-  "start_url": "/ELDRATH-/",
-  "scope": "/ELDRATH-/",
+  "background_color": "#050509",
+  "dir": "ltr",
   "display": "standalone",
+  "name": "As cinzas de eldrath",
   "orientation": "any",
-  "background_color": "rgb(5, 5, 9)",
-  "theme_color": "hsl(342, 74%, 31%)",
-  "icons": [
-    {
-      "src": "/ELDRATH-/icon-192.png",
-      "sizes": "192x192",
-      "type": "image/png"
-    },
-    {
-      "src": "/ELDRATH-/icon-512.png",
-      "sizes": "512x512",
-      "type": "image/png"
-    }
-  ]
+  "scope": "/",
+  "short_name": "Eldrath",
+  "start_url": "/",
+  "theme_color": "#581226",
+  "description": "As Cinzas de Eldrath é um RPG sombrio de fantasia com classes, monstros, chefes, equipamentos e regiões amaldiçoadas."
+}
